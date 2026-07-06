@@ -1,0 +1,48 @@
+# Python virtual environments
+.venv/
+venv/
+env/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Environment variables / secrets
+.env
+.env.*
+!.env.example
+
+# Database backups / dumps
+*.sql
+*.dump
+*.backup
+
+# Logs
+*.log
+logs/
+
+# Docker/local volumes
+postgres_data/
+chroma_data/
+ollama/
+*.db
+*.sqlite
+*.sqlite3
+
+# RAG source documents
+app/data/rag_resources/
+app/data/rag_sources/
+
+# OS/editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Streamlit secrets
+.streamlit/secrets.toml

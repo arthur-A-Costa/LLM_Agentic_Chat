@@ -1,0 +1,101 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg16-trixie
+    container_name: postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres_user
+      POSTGRES_PASSWORD: postgres_password
+      POSTGRES_DB: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - ollama_docker
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    ports:
+      - 11434:11434
+    environment:
+      - OLLAMA_KEEP_ALIVE=24h
+    volumes:
+      - ollama_data:/root/.ollama
+    restart: unless-stopped
+    networks:
+      - ollama_docker
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
+  backend:
+    build:
+      context: "."
+      dockerfile: "dockerfile.backend"
+    container_name: backend
+    depends_on:
+      - ollama
+      - postgres
+      - chromadb
+    environment:
+      OLLAMA_BASE_URL: http://ollama:11434
+      DATABASE_URL: postgresql://postgres_user:postgres_password@postgres:5432/postgres
+      ENABLE_REVIEW_AGENT: true
+      OLLAMA_MODEL: qwen3:8b
+      ROUTER_MODEL: qwen3:8b
+      SALESMAN_MODEL: qwen3:8b
+      CONSULTANT_MODEL: qwen3:8b
+      REVIEWER_MODEL: qwen3:8b
+      EMBEDDING_MODEL: nomic-embed-text
+      CHROMA_HOST: chromadb
+      CHROMA_PORT: 8000
+      CHROMA_COLLECTION: consortium_docs
+      RAG_SOURCE_DIR: app/data/rag_resources
+      VECTOR_STORE_TYPE: pgvector
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    networks:
+      - ollama_docker
+
+  chromadb:
+    image: chromadb/chroma:latest
+    container_name: chromadb
+    ports:
+      - "8001:8000"
+    volumes:
+      - chroma_data:/data
+    restart: unless-stopped
+    networks:
+      - ollama_docker
+
+  frontend:
+    build:
+      context: "."
+      dockerfile: "dockerfile.frontend"
+    container_name: streamlit_frontend
+    ports:
+      - "8501:8501"
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/frontend
+    environment:
+      - BACKEND_URL=http://backend:8000
+    networks:
+      - ollama_docker
+
+volumes:
+  postgres_data:
+  ollama_data:
+  chroma_data:
+
+networks:
+  ollama_docker:

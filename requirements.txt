@@ -1,0 +1,15 @@
+fastapi
+uvicorn
+langchain
+langgraph
+langchain-ollama
+langchain-core
+pydantic
+python-dotenv
+sqlalchemy
+psycopg[binary]
+chromadb
+docling
+langchain-chroma
+langchain-docling
+langchain-text-splitters
