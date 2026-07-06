@@ -1,8 +1,11 @@
-.venv
-__pycache__
-*.pyc
-.env
-.git
 .gitignore
 chroma-data
 postgres-data
+.venv/
+__pycache__/
+*.pyc
+.git/
+.env
+*.sql
+app/data/rag_resources/
+app/data/rag_sources/
