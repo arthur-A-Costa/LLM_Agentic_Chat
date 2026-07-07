@@ -13,3 +13,7 @@ docling
 langchain-chroma
 langchain-docling
 langchain-text-splitters
+mcp
+langchain-exa
+langchain-mcp-adapters
+exa-py

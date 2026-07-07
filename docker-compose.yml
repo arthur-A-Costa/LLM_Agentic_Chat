@@ -92,6 +92,28 @@ services:
     networks:
       - ollama_docker
 
+  mcp_server:
+    build:
+      context: "."
+      dockerfile: "dockerfile.mcp"
+    container_name: mcp_server
+    depends_on:
+      - postgres
+      - ollama
+      - chromadb
+    environment:
+      DATABASE_URL: postgresql://postgres_user:postgres_password@postgres:5432/postgres
+      OLLAMA_BASE_URL: http://ollama:11434
+      EMBEDDING_MODEL: nomic-embed-text
+      CHROMA_HOST: chromadb
+      CHROMA_PORT: 8000
+      CHROMA_COLLECTION: consortium_docs
+      VECTOR_STORE: chroma
+    ports:
+      - "8010:8001"
+    networks:
+      - ollama_docker
+
 volumes:
   postgres_data:
   ollama_data:
