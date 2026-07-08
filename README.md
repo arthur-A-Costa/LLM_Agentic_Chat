@@ -1,13 +1,28 @@
 # LLM Agentic Chat Project
+## Project Overview
 
-## Tools, Frameworks and languages
+## Tools, Frameworks, and Technologies
+### Language
 - Python
-- LangChain (LangChain and LangGraph)
-- Streamlit
-- Docling
-- EXA Search
-- FastMCP
-- PostgreSQL
-- ChromaDB
-- PGVector
+### Backend and API
 - FastAPI
+- Pydantic
+- Uvicorn
+### Frontend
+- Streamlit
+### Agentic AI and LLM Orchestration
+- LangChain
+- LangGraph
+- Ollama
+### Data, RAG, and Search
+- PostgreSQL
+- PGVector
+- ChromaDB
+- Docling
+- Exa
+### Infrastructure
+- Docker
+- Docker Compose
+- MCP
+
+## Objectives
