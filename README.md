@@ -5,7 +5,7 @@
 - LangChain (LangChain and LangGraph)
 - Streamlit
 - Docling
-- EXA
+- EXA Search
 - FastMCP
 - PostgreSQL
 - ChromaDB
