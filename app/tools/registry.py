@@ -1,6 +1,7 @@
 import os
 from langchain.tools import tool
 from app.tools.products import search_products
+from app.tools.mcp_client import get_mcp_tools
 from app.tools.consortium import (
     search_consortium,
     evaluate_consortium_affordability,
@@ -165,13 +166,59 @@ def search_consortium_documents(query: str) -> str:
     else:
         results = search_documents(query=query, k=4)
         return format_search_results(results)
+    
+async def get_salesman_tools():
+    mcp_tools = await get_mcp_tools()
 
+    allowed_mcp_tool_names = {
+        "search_consortium_products",
+        "simulate_consortium_payment",
+        "search_consortium_documents",
+        "search_public_web",
+    }
+
+    filtered_mcp_tools = [
+        tool for tool in mcp_tools
+        if tool.name in allowed_mcp_tool_names
+    ]
+
+    return [
+        search_consortium_db,
+        consortium_installment_simulation,
+        search_consortium_documents,
+        *filtered_mcp_tools,
+    ]
+
+
+async def get_consultant_tools():
+    mcp_tools = await get_mcp_tools()
+
+    allowed_mcp_tool_names = {
+        "search_consortium_products",
+        "simulate_consortium_payment",
+        "search_consortium_documents",
+        "search_public_web",
+    }
+
+    filtered_mcp_tools = [
+        tool for tool in mcp_tools
+        if tool.name in allowed_mcp_tool_names
+    ]
+
+    return [
+        search_consortium_db,
+        check_consortium_affordability,
+        check_consortium_suitability,
+        consortium_installment_simulation,
+        search_consortium_documents,
+        *filtered_mcp_tools,
+    ]
+
+"""
 salesman_tools = [
     search_consortium_db, 
     search_product_db, 
     consortium_installment_simulation,
-    check_consortium_affordability,
-    check_consortium_suitability, 
     search_consortium_documents
 ]
 
@@ -183,3 +230,4 @@ consultant_tools = [
     check_consortium_suitability,
     search_consortium_documents
 ]
+"""

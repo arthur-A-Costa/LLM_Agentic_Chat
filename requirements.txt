@@ -14,6 +14,5 @@ langchain-chroma
 langchain-docling
 langchain-text-splitters
 mcp
-langchain-exa
 langchain-mcp-adapters
-exa-py
+exa-py==2.16.0

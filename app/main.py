@@ -33,40 +33,11 @@ def health():
     }
 
 @app.post("/chat", response_model=ChatResponse)
-def chat(request: ChatRequest):
-    """
-    selected_agent = route_message(request.message)
-
-    if selected_agent == "human_support":
-            return {
-                "agent": "human_support",
-                "response": (
-                    "This situation should be handled by human support. "
-                    "Please contact the bank's official support channel immediately."
-                ),
-            }
-    
-    if selected_agent == "salesman":
-         agent = salesman_agent
-    else:
-         agent = consultant_agent
-    
-    result = agent.invoke(
-        {
-              "messages": [ {
-                   "role": "user",
-                   "content": request.message,
-            } ]
-        }
-    )
-
-    final_message = result["messages"][-1].content
-    """
-
+async def chat(request: ChatRequest):
     conversation_id = request.conversation_id or str(uuid.uuid4())[:255]
 
     config: RunnableConfig = {"configurable": {"thread_id": conversation_id}}
-    result = chatGraph.invoke(
+    result = await chatGraph.ainvoke(
     {
         "messages": [
             {

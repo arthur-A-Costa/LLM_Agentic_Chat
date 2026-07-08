@@ -27,9 +27,9 @@ class ChatGraphState(TypedDict):
     draft_response: str
     response: str
 
-salesmas_agent = create_salesman_agent()
-consultant_agent = create_consultant_agent()
-reviewer_agent = create_reviewer_agent()
+# salesmas_agent = create_salesman_agent()
+# consultant_agent = create_consultant_agent()
+# reviewer_agent = create_reviewer_agent()
 
 def get_latest_user_message(state: ChatGraphState) -> str:
     for message in reversed(state["messages"]):
@@ -60,9 +60,10 @@ def choose_next_node(
 
     return "consultant"
 
-def salesman_node(state: ChatGraphState) -> ChatGraphState:
+async def salesman_node(state: ChatGraphState) -> ChatGraphState:
     
-    result = salesmas_agent.invoke(
+    salesmas_agent = await create_salesman_agent()
+    result = await salesmas_agent.ainvoke(
         {
               "messages": state["messages"]
         }
@@ -75,9 +76,10 @@ def salesman_node(state: ChatGraphState) -> ChatGraphState:
          "draft_response": final_message
     }
 
-def consultant_node(state: ChatGraphState) -> ChatGraphState:
+async def consultant_node(state: ChatGraphState) -> ChatGraphState:
     
-    result = consultant_agent.invoke(
+    consultant_agent = await create_consultant_agent()
+    result = await consultant_agent.ainvoke(
         {
               "messages": state["messages"]
         }
@@ -90,10 +92,11 @@ def consultant_node(state: ChatGraphState) -> ChatGraphState:
          "draft_response": final_message
     }
 
-def reviewer_node(state: ChatGraphState) -> ChatGraphState:
+async def reviewer_node(state: ChatGraphState) -> ChatGraphState:
     draft_response = state["draft_response"]
 
-    result = reviewer_agent.invoke(
+    reviewer_agent = await create_reviewer_agent()
+    result = await reviewer_agent.ainvoke(
         {
             "messages": [
                 {

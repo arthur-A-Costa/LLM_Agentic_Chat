@@ -58,6 +58,7 @@ services:
       CHROMA_COLLECTION: consortium_docs
       RAG_SOURCE_DIR: app/data/rag_resources
       VECTOR_STORE_TYPE: pgvector
+      EXA_API_KEY: ${EXA_API_KEY}
     ports:
       - "8000:8000"
     volumes:
@@ -109,6 +110,7 @@ services:
       CHROMA_PORT: 8000
       CHROMA_COLLECTION: consortium_docs
       VECTOR_STORE: chroma
+      EXA_API_KEY: ${EXA_API_KEY}
     ports:
       - "8010:8001"
     networks:
