@@ -1,4 +1,4 @@
-### LLM Agentic Chat Project
+# LLM Agentic Chat Project
 
 ## Tools, Frameworks and languages
 - Python
