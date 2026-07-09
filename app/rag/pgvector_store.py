@@ -45,7 +45,7 @@ def insert_documents_pgvector(documents: list[Document]) -> int:
 
                 cur.execute(
                     """
-                    INSERT INTO rag_document_chunks (chunk_id, source_file, file_name, file_type, content, metadata, embedding)
+                    INSERT INTO rag_document_chunks_bge_m3 (chunk_id, source_file, file_name, file_type, content, metadata, embedding)
                     VALUES (%s, %s, %s, %s, %s, %s, %s)
                     """,
                     (chunk_id, source_file, file_name, file_type, doc.page_content, metadata_json, embedding),
@@ -56,7 +56,7 @@ def insert_documents_pgvector(documents: list[Document]) -> int:
 
     return inserted_count
 
-def search_documents_pgvector(query: str, k: int = 4) -> list[dict]:
+def search_documents_pgvector(query: str, k: int = 3) -> list[dict]:
     embedding_model = get_embedding_model()
     query_embedding = embedding_model.embed_query(query)
 
@@ -72,7 +72,7 @@ def search_documents_pgvector(query: str, k: int = 4) -> list[dict]:
                     content, 
                     metadata,
                     embedding <=> %s::vector AS distance 
-                FROM rag_document_chunks
+                FROM rag_document_chunks_bge_m3
                 ORDER BY embedding <=> %s::vector
                 LIMIT %s
                 """,

@@ -21,6 +21,7 @@ consultant_agent_prompt = """
         - If the user wants an analysis or calculation utilize given numbers, and if asked to do so, utilize the standard numbers, present in the database, utilized by the most fitting option. 
         - If the user requests a calculation or analysis, show the most essential parts of the calculation and line of thought.
         - Never create data or suppose the value of fees, terms and other values.
+        - Call search_consortium_documents at most once per user question. After receiving the results, answer from the returned content. If the content is not relevant, say that the internal documents did not return enough information.
 
         Formatting rules:
         - Do not mention tools, tool calls, database queries, or internal systems in your responses.
@@ -59,6 +60,7 @@ salesman_agent_prompt = """
         - If the user asks whether the consortium is suitable for their financial situation, recommend analysis by the consultant agent.
         - Never create data or invent consortium options. If no matching options are found, say so clearly.
         - If the user wants an analysis or calculation utilize given numbers, and if asked to do so, utilize the standard numbers, present in the database, utilized by the most fitting option. 
+        - Call search_consortium_documents at most once per user question. After receiving the results, answer from the returned content. If the content is not relevant, say that the internal documents did not return enough information.
 
         Formatting rules:
         - Do not mention tools, tool calls, database queries, or internal systems in your responses.

@@ -52,7 +52,7 @@ services:
       SALESMAN_MODEL: qwen3:8b
       CONSULTANT_MODEL: qwen3:8b
       REVIEWER_MODEL: qwen3:8b
-      EMBEDDING_MODEL: nomic-embed-text
+      EMBEDDING_MODEL: bge-m3
       CHROMA_HOST: chromadb
       CHROMA_PORT: 8000
       CHROMA_COLLECTION: consortium_docs
@@ -105,11 +105,12 @@ services:
     environment:
       DATABASE_URL: postgresql://postgres_user:postgres_password@postgres:5432/postgres
       OLLAMA_BASE_URL: http://ollama:11434
-      EMBEDDING_MODEL: nomic-embed-text
+      EMBEDDING_MODEL: bge-m3
       CHROMA_HOST: chromadb
       CHROMA_PORT: 8000
       CHROMA_COLLECTION: consortium_docs
-      VECTOR_STORE: chroma
+      RAG_SOURCE_DIR: app/data/rag_resources
+      VECTOR_STORE_TYPE: pgvector
       EXA_API_KEY: ${EXA_API_KEY}
     ports:
       - "8010:8001"

@@ -4,8 +4,8 @@ async def get_mcp_tools():
     client = MultiServerMCPClient(
         {
             "banking_mcp": {
-                "url": "http://mcp_server:8001/sse",
-                "transport": "sse",
+                "url": "http://mcp_server:8001/mcp",
+                "transport": "streamable_http",
             }
         }
     )

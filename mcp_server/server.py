@@ -2,7 +2,7 @@ from mcp.server.fastmcp import FastMCP
 
 from app.tools.consortium import search_consortium
 from app.tools.registry import consortium_installment_simulation
-from app.rag.retriever import search_documents, format_search_results
+from app.rag.pgvector_store import search_documents_pgvector, format_search_results_pgvector
 from app.tools.exa_web_search import search_web_exa
 
 mcp = FastMCP(
@@ -55,10 +55,26 @@ def simulate_consortium_payment(
 @mcp.tool()
 def search_consortium_documents(query: str, k: int = 4) -> str:
     """
-    Search internal consortium manuals, policies, FAQs, and document chunks.
+    Search internal consortium documents, manuals, FAQs, and policies.
+
+    Use this tool for questions about:
+    - how consortiums work
+    - contemplation rules
+    - bid offers
+    - cancellation
+    - missed payments
+    - default/inadimplência
+    - risks
+    - suitability guidelines
+    - policy explanations
+    - required documents after contemplation
+
+    Do not use this tool for exact product options, fees, terms,
+    minimum income, or credit ranges. For product data, use the
+    PostgreSQL consortium database tool.
     """
-    results = search_documents(query=query, k=k)
-    return format_search_results(results)
+    results = search_documents_pgvector(query=query, k=k)
+    return format_search_results_pgvector(results)
 
 @mcp.tool()
 def search_public_web(query: str, k: int = 4) -> list[dict]:
@@ -79,4 +95,4 @@ def search_public_web(query: str, k: int = 4) -> list[dict]:
 
 if __name__ == "__main__":
     print("Starting MCP server on 0.0.0.0:8001...", flush=True)
-    mcp.run(transport="sse")
+    mcp.run(transport="streamable-http")

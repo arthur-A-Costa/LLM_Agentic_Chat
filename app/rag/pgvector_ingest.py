@@ -41,7 +41,7 @@ def ingest_documents(reset: bool = False):
     if reset:
         with get_connection() as conn:
             with conn.cursor() as cur:
-                cur.execute("TRUNCATE TABLE rag_document_chunks;")
+                cur.execute("TRUNCATE TABLE rag_document_chunks_bge_m3;")
             conn.commit()
 
     inserted_count = insert_documents_pgvector(document_chunks)
