@@ -114,8 +114,8 @@ def consortium_installment_simulation(
     credit_amount: float,
     term_months: int,
     total_admin_fee_rate: float,
-    reserve_fund_rate: float = 0.0,
-    membership_fee: float = 0.0,
+    reserve_fund_rate: float,
+    membership_fee: float,
 ) -> dict:
     """
     Simulate an estimated consortium installment.
@@ -125,7 +125,24 @@ def consortium_installment_simulation(
     - estimated installment for a consortium
     - estimated payment for a consortium 
 
-    When using this tool utilize the data specified by the client or the standard data present in the database, utilized by the most fitting option.
+    Rules:
+    - When using this tool utilize the data specified by the client or the standard data present in the database, utilized by the most fitting option.
+    - Show the user the estimated monthly payment, total fees, and total cost of the consortium, and also specify what consortium option was selected or resembles the user's needs and specified information.
+    - Explain the basics of the calculation so the user understands how the estimated monthly payment was derived.
+    - Do not just return the estimated monthly payment and other numbers. Provide a detailed explanation of the scenario calculated and the factors that influence it.
+    - Always model the calculations on the best available consortium option from the database, so use the search_consortium_db tool to check the available options.
+
+    Format the answer in Markdown, including:
+        - Selected consortium option: Automobile, Motorcycle, Real Estate, or Services
+        - Credit amount
+        - Term in months
+        - Administrative fee
+        - Reserve fund, if available
+        - Estimated total cost
+        - Estimated monthly payment
+        - Short calculation formula
+    
+    Use clean Markdown. Do not output broken bold markers, missing spaces, or unformatted numbers.
 
     This is only an estimate. Real installments may vary.
     """
@@ -183,9 +200,9 @@ async def get_salesman_tools():
     ]
 
     return [
-        search_consortium_db,
+        #search_consortium_db,
         consortium_installment_simulation,
-        search_consortium_documents,
+        #search_consortium_documents,
         *filtered_mcp_tools,
     ]
 
@@ -206,11 +223,11 @@ async def get_consultant_tools():
     ]
 
     return [
-        search_consortium_db,
+        #search_consortium_db,
         check_consortium_affordability,
         check_consortium_suitability,
         consortium_installment_simulation,
-        search_consortium_documents,
+        #search_consortium_documents,
         *filtered_mcp_tools,
     ]
 

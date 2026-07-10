@@ -3,6 +3,20 @@ import streamlit as st
 
 BACKEND_URL = "http://backend:8000/chat"
 
+INTRO_MESSAGE = """
+Hello! I'm your consortium banking assistant.
+
+I can help you with:
+
+- Exploring available consortium options for automobiles, motorcycles, real estate, and services.
+- Simulating estimated monthly payments based on credit amount, term, and standard plan conditions.
+- Comparing consortium options and identifying which plan best fits your needs.
+- Evaluating affordability and suitability based on income, budget, risk level, and urgency.
+- Explaining consortium rules such as contemplation, bids, late payments, cancellation, FGTS usage, and contract obligations.
+- Searching internal consortium documents for policy-based answers.
+- Looking up public information when current external data is needed.
+"""
+
 st.set_page_config(
     page_title="Banking Agents Chat",
     page_icon="🏦",
@@ -10,16 +24,26 @@ st.set_page_config(
 
 st.title("Banking Agents Chat")
 
-if st.button("Clear conversation"):
-    st.session_state.messages = []
-    st.session_state.conversation_id = None
-    st.rerun()
-
 if 'conversation_id' not in st.session_state:
     st.session_state.conversation_id = None
 
 if 'messages' not in st.session_state:
-    st.session_state.messages = []
+    st.session_state.messages = [
+        {
+            "role": "assistant",
+            "content": INTRO_MESSAGE,
+        }
+    ]
+
+if st.button("Clear conversation"):
+    st.session_state.messages = [
+        {
+            "role": "assistant",
+            "content": INTRO_MESSAGE,
+        }
+    ]
+    st.session_state.conversation_id = None
+    st.rerun()
 
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
@@ -55,7 +79,7 @@ if user_message:
         selected_agent = data["agent"]
 
         st.caption(f"Agent: {selected_agent}")
-        st.markdown(assistant_response)
+        st.text(assistant_response)
 
     st.session_state.messages.append(
         {

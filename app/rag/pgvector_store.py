@@ -40,8 +40,8 @@ def insert_documents_pgvector(documents: list[Document]) -> int:
                 embedding = embedding_model.embed_query(doc.page_content)
                 metadata_json = metadata_to_json(doc.metadata)
                 file_name = doc.metadata.get("file_name", "")
-                file_type = doc.metadata.get("file_type", "")
-                source_file = doc.metadata.get("source_file", "")
+                file_type = doc.metadata.get("file_extension", "")
+                source_file = doc.metadata.get("source", "")
 
                 cur.execute(
                     """

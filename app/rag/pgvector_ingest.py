@@ -2,6 +2,7 @@ from pathlib import Path
 import os
 from uuid import uuid4
 
+from app.db.session_connection import get_connection
 import psycopg
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -47,4 +48,4 @@ def ingest_documents(reset: bool = False):
     inserted_count = insert_documents_pgvector(document_chunks)
 
 if __name__ == "__main__":
-    ingest_documents(reset=False)
+    ingest_documents(reset=True)
