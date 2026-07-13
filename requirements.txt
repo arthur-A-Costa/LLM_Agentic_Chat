@@ -8,6 +8,7 @@ pydantic
 python-dotenv
 sqlalchemy
 psycopg[binary]
+psycopg-pool
 chromadb
 docling
 langchain-chroma
@@ -16,3 +17,4 @@ langchain-text-splitters
 mcp
 langchain-mcp-adapters
 exa-py==2.16.0
+langgraph-checkpoint-postgres

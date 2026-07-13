@@ -2,6 +2,7 @@ import requests
 import streamlit as st
 
 BACKEND_URL = "http://backend:8000/chat"
+BACKEND_MESSAGES_URL = "http://backend:8000/conversations"
 
 INTRO_MESSAGE = """
 Hello! I'm your consortium banking assistant.
@@ -24,26 +25,59 @@ st.set_page_config(
 
 st.title("Banking Agents Chat")
 
+query_params = st.query_params
+
+def load_conversation_messages(conversation_id: str) -> list[dict]:
+    response = requests.get(
+        f"http://backend:8000/conversations/{conversation_id}/messages",
+        timeout=30,
+    )
+    response.raise_for_status()
+    return response.json()["messages"]
+
 if 'conversation_id' not in st.session_state:
-    st.session_state.conversation_id = None
+    st.session_state.conversation_id = query_params.get("conversation_id")
 
 if 'messages' not in st.session_state:
-    st.session_state.messages = [
-        {
-            "role": "assistant",
-            "content": INTRO_MESSAGE,
-        }
-    ]
+    if st.session_state.conversation_id:
+        try:
+            st.session_state.messages = load_conversation_messages(st.session_state.conversation_id)
 
-if st.button("Clear conversation"):
-    st.session_state.messages = [
-        {
-            "role": "assistant",
-            "content": INTRO_MESSAGE,
-        }
-    ]
-    st.session_state.conversation_id = None
-    st.rerun()
+        except Exception:
+            st.session_state.messages = [
+                {
+                    "role": "assistant",
+                    "content": INTRO_MESSAGE,
+                }
+            ]
+    else:
+        st.session_state.messages = [
+                {
+                    "role": "assistant",
+                    "content": INTRO_MESSAGE,
+                }
+            ]
+with st.container(horizontal=True):
+    #if st.button("Clear conversation"):
+    #    st.session_state.messages = [
+    #        {
+    #            "role": "assistant",
+    #            "content": INTRO_MESSAGE,
+    #        }
+    #    ]
+    #st.session_state.conversation_id = None
+    #st.rerun()
+
+    if st.button("New conversation"):
+        st.session_state.messages = [
+            {
+                "role": "assistant",
+                "content": INTRO_MESSAGE,
+            }
+        ]
+        st.session_state.conversation_id = None
+        st.query_params.clear()
+        st.rerun() 
 
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
@@ -74,12 +108,13 @@ if user_message:
             data = response.json()
 
         st.session_state.conversation_id = data["conversation_id"]
+        st.query_params["conversation_id"] = data["conversation_id"]
 
         assistant_response = data["response"]
         selected_agent = data["agent"]
 
         st.caption(f"Agent: {selected_agent}")
-        st.text(assistant_response)
+        st.markdown(assistant_response)
 
     st.session_state.messages.append(
         {

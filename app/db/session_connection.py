@@ -10,4 +10,4 @@ DATABASE_URL = os.getenv(
 
 
 def get_connection():
-    return psycopg.connect(DATABASE_URL, row_factory = dict_row)
+    return psycopg.connect(DATABASE_URL, row_factory = dict_row, autocommit = True)

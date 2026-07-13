@@ -8,6 +8,10 @@ from langchain_core.messages import AnyMessage, AIMessage
 from langgraph.graph import StateGraph, START, END
 from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.graph.message import add_messages
+from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
+
+from psycopg_pool import AsyncConnectionPool
+from psycopg.rows import dict_row
 
 from app.router import route_message
 from app.agents.salesman_agent import create_salesman_agent
@@ -18,6 +22,7 @@ from app.agents.reviewer_agent import create_reviewer_agent
 import os
 
 ENABLE_REVIEW_AGENT = os.getenv("ENABLE_REVIEW_AGENT", "true").lower() == "true"
+DB_URL = os.getenv("DATABASE_URL", "postgresql://postgres_user:postgres_password@postgres:5432/postgres")
 
 # Creation of the class that works as the state - memory of the AI application
 class ChatGraphState(TypedDict):
@@ -148,6 +153,19 @@ def build_graph(checkpointer):
 
     return agent_builder.compile(checkpointer=checkpointer)
 
-checkpointer = InMemorySaver()
+async def create_chat_graph():
+    postgres_pool = AsyncConnectionPool(
+        conninfo=DB_URL,
+        max_size=20,
+        kwargs={
+            "autocommit" : True,
+            "row_factory": dict_row,
+        }
+    )
 
-chatGraph = build_graph(checkpointer=checkpointer)
+    checkpointer = AsyncPostgresSaver(postgres_pool)
+    await checkpointer.setup()
+
+    chat_graph = build_graph(checkpointer=checkpointer)
+
+    return chat_graph, postgres_pool
