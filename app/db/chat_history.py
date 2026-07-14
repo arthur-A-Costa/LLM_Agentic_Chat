@@ -75,7 +75,7 @@ def get_sidebar_conversations() -> list[dict]:
                 SELECT
                     c.conversation_id,
                     COALESCE(
-                        SUBSTRING(first_msg.content FROM 1 FOR 20),
+                        SUBSTRING(first_msg.content FROM 1 FOR 40),
                         'New conversation'
                     ) AS title,
                     c.updated_at

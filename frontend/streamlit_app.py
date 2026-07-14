@@ -181,7 +181,7 @@ if user_message:
         selected_agent = data["agent"]
 
         st.caption(f"Agent: {selected_agent}")
-        st.markdown(assistant_response)
+        st.markdown(assistant_response.replace("$", r"\$"))
 
     st.session_state.messages.append(
         {

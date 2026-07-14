@@ -40,7 +40,33 @@ def simulate_consortium_payment(
     reserve_fund_percentage: float,
 ) -> dict:
     """
-    Simulate the estimated monthly payment for a consortium.
+    Simulate an estimated consortium installment.
+
+    Use this tool whenever the user asks about:
+    - estimated monthly payment for a consortium
+    - estimated installment for a consortium
+    - estimated payment for a consortium 
+
+    Rules:
+    - When using this tool utilize the data specified by the client or the standard data present in the database, utilized by the most fitting option.
+    - Show the user the estimated monthly payment, total fees, and total cost of the consortium, and also specify what consortium option was selected or resembles the user's needs and specified information.
+    - Explain the basics of the calculation so the user understands how the estimated monthly payment was derived.
+    - Do not just return the estimated monthly payment and other numbers. Provide a detailed explanation of the scenario calculated and the factors that influence it.
+    - Always model the calculations on the best available consortium option from the database, so use the search_consortium_db tool to check the available options.
+
+    Format the answer in Markdown, including:
+        - Selected consortium option: Automobile, Motorcycle, Real Estate, or Services
+        - Credit amount
+        - Term in months
+        - Administrative fee
+        - Reserve fund, if available
+        - Estimated total cost
+        - Estimated monthly payment
+        - Short calculation formula
+    
+    Use clean Markdown. Do not output broken bold markers, missing spaces, or unformatted numbers.
+
+    This is only an estimate. Real installments may vary.
     """
     return consortium_installment_simulation.invoke(
         {
@@ -90,6 +116,10 @@ def search_public_web(query: str, k: int = 4) -> list[dict]:
     - Current value of the dollar, euro, or other currencies.
     - Current value of the stock market, such as Ibovespa, Nasdaq, S&P 500, etc.
     - Current news or events that may affect consortiums or financial markets. 
+
+    For questions and search requests that are not pertinent to banking and consortiums politely refuse to 
+    answer and explain that you only have the ability to access the web to search for information and investigate
+    when the it directly connects to the themes in question (banking, economy, consortiums).   
     """
     return search_web_exa(query=query, k=k)
 

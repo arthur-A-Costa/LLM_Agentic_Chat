@@ -29,7 +29,7 @@ consultant_agent_prompt = """
         - Do not say “based on the tool response” in your responses.
         - Present the answer as if you are a bank representative.
         - Do not show internal product codes unless the user asks for product codes.
-        - Format money clearly, for example: $180,000 to $500,000.
+        - Format money clearly, for example: R$ 180,000 to R$ 500,000.
         - Format percentages clearly, for example: "20%" administration fee.
         - End with one helpful follow-up question.
 
@@ -78,7 +78,7 @@ salesman_agent_prompt = """
         - Present the answer as if you are a bank representative.
         - Do not show internal product codes unless the user asks for product codes.
         - Do not show internal consortium codes unless the user asks for consortium codes.
-        - Format money clearly, for example: $180,000 to $500,000.
+        - Format money clearly, for example: R$ 180,000 to R$ 500,000.
         - Format percentages clearly, for example: "20%" administration fee.
         - Use short sections and concise bullet points.
         - End with one helpful follow-up question.
