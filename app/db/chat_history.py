@@ -66,3 +66,49 @@ def load_messages(conversation_id: str) -> list[dict]:
         } 
         for row in rows
     ]
+
+def get_sidebar_conversations() -> list[dict]:
+    with psycopg.connect(DB_URL) as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT
+                    c.conversation_id,
+                    COALESCE(
+                        SUBSTRING(first_msg.content FROM 1 FOR 20),
+                        'New conversation'
+                    ) AS title,
+                    c.updated_at
+                FROM chat_conversations c
+                LEFT JOIN LATERAL (
+                    SELECT m.content
+                    FROM chat_messages m
+                    WHERE m.conversation_id = c.conversation_id
+                      AND m.role = 'user'
+                    ORDER BY m.created_at ASC, m.message_id ASC
+                    LIMIT 1
+                ) first_msg ON TRUE
+                ORDER BY c.updated_at DESC
+                """
+            )
+
+            rows = cur.fetchall()
+
+    return [
+        {
+            "conversation_id": str(row[0]),
+            "title": row[1],
+            "updated_at": row[2].isoformat() if row[2] else None,
+        }
+        for row in rows
+    ]
+
+def clear_chat_history():
+    with psycopg.connect(DB_URL) as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                    TRUNCATE TABLE chat_messages, chat_conversations
+                    RESTART IDENTITY CASCADE
+                """
+            )

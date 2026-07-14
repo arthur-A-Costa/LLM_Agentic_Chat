@@ -3,6 +3,8 @@ import streamlit as st
 
 BACKEND_URL = "http://backend:8000/chat"
 BACKEND_MESSAGES_URL = "http://backend:8000/conversations"
+BACKEND_SIDEBAR_URL = "http://backend:8000/conversations/sidebar"
+BACKEND_DELETE_URL = "http://backend:8000/conversations/delete"
 
 INTRO_MESSAGE = """
 Hello! I'm your consortium banking assistant.
@@ -35,6 +37,21 @@ def load_conversation_messages(conversation_id: str) -> list[dict]:
     response.raise_for_status()
     return response.json()["messages"]
 
+def get_conversation_sidebar() -> list[dict]:
+    response = requests.get(
+        "http://backend:8000/conversations/sidebar",
+        timeout=30,
+    )
+    response.raise_for_status()
+    return response.json()["conversations"]
+
+def clear_history():
+    response = requests.delete(
+        "http://backend:8000/conversations/delete",
+        timeout = 30,
+    )
+    response.raise_for_status()
+
 if 'conversation_id' not in st.session_state:
     st.session_state.conversation_id = query_params.get("conversation_id")
 
@@ -57,16 +74,9 @@ if 'messages' not in st.session_state:
                     "content": INTRO_MESSAGE,
                 }
             ]
-with st.container(horizontal=True):
-    #if st.button("Clear conversation"):
-    #    st.session_state.messages = [
-    #        {
-    #            "role": "assistant",
-    #            "content": INTRO_MESSAGE,
-    #        }
-    #    ]
-    #st.session_state.conversation_id = None
-    #st.rerun()
+        
+with st.sidebar:
+    st.title("Chat History")
 
     if st.button("New conversation"):
         st.session_state.messages = [
@@ -77,7 +87,64 @@ with st.container(horizontal=True):
         ]
         st.session_state.conversation_id = None
         st.query_params.clear()
-        st.rerun() 
+        st.rerun()
+
+    if st.button("Clear History"):
+        clear_history()
+        st.session_state.messages = [
+            {
+                "role": "assistant",
+                "content": INTRO_MESSAGE,
+            }
+        ]
+        st.session_state.conversation_id = None
+        st.query_params.clear()
+        st.rerun()
+    
+    st.divider()
+
+    try:
+        conversations = get_conversation_sidebar()
+
+        if not conversations:
+            st.caption("No Previous Conversations")
+
+        for conversation in conversations:
+            conversation_id = conversation["conversation_id"]
+            title = conversation["title"] or "New Conversation"
+
+            is_current = (conversation_id == st.session_state.conversation_id)
+
+            button_title = title
+
+            if is_current:
+                button_title = f"✅ {title}"
+
+            if st.button(
+                button_title,
+                key = conversation_id,
+                width="stretch"
+            ):
+                st.session_state.conversation_id = conversation_id
+                st.query_params["conversation_id"] = conversation_id
+
+                st.session_state.messages = load_conversation_messages(conversation_id)
+
+                st.rerun()
+
+    except Exception as error:
+        st.caption("Could not load conversations.")
+        st.caption(str(error))
+
+#with st.container(horizontal=True):
+    #if st.button("Clear conversation"):
+    #    st.session_state.messages = [
+    #        {
+    #            "role": "assistant",
+    #            "content": INTRO_MESSAGE,
+    #        }
+    #    ]
+    #st.rerun()
 
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):

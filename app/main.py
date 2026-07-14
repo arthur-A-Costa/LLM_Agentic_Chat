@@ -7,7 +7,7 @@ from langchain_core.runnables import RunnableConfig
 
 from app.graph import create_chat_graph
 from app.agents.router_agent import router_message
-from app.db.chat_history import save_message, create_conversation, load_messages
+from app.db.chat_history import save_message, create_conversation, load_messages, get_sidebar_conversations, clear_chat_history
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -91,4 +91,19 @@ def get_conversation_messages(conversation_id: str):
     return {
         "conversation_id": conversation_id,
         "messages": load_messages(conversation_id),
+    }
+
+@app.get("/conversations/sidebar")
+def get_conversations_sidebar():
+    return {
+        "conversations": get_sidebar_conversations()
+    }
+
+@app.delete("/conversations/delete")
+def delete_history():
+    clear_chat_history()
+
+    return{
+        "status" : "Success",
+        "message" : "All conversation history was cleared"
     }
