@@ -73,22 +73,11 @@ def get_sidebar_conversations() -> list[dict]:
             cur.execute(
                 """
                 SELECT
-                    c.conversation_id,
-                    COALESCE(
-                        SUBSTRING(first_msg.content FROM 1 FOR 40),
-                        'New conversation'
-                    ) AS title,
-                    c.updated_at
-                FROM chat_conversations c
-                LEFT JOIN LATERAL (
-                    SELECT m.content
-                    FROM chat_messages m
-                    WHERE m.conversation_id = c.conversation_id
-                      AND m.role = 'user'
-                    ORDER BY m.created_at ASC, m.message_id ASC
-                    LIMIT 1
-                ) first_msg ON TRUE
-                ORDER BY c.updated_at DESC
+                    conversation_id,
+                    title,
+                    updated_at
+                FROM chat_conversations
+                ORDER BY updated_at DESC
                 """
             )
 
@@ -112,3 +101,24 @@ def clear_chat_history():
                     RESTART IDENTITY CASCADE
                 """
             )
+
+
+hardcoded_title_query = """ 
+                SELECT
+                    c.conversation_id,
+                    COALESCE(
+                        SUBSTRING(first_msg.content FROM 1 FOR 40),
+                        'New conversation'
+                    ) AS title,
+                    c.updated_at
+                FROM chat_conversations c
+                LEFT JOIN LATERAL (
+                    SELECT m.content
+                    FROM chat_messages m
+                    WHERE m.conversation_id = c.conversation_id
+                      AND m.role = 'user'
+                    ORDER BY m.created_at ASC, m.message_id ASC
+                    LIMIT 1
+                ) first_msg ON TRUE
+                ORDER BY c.updated_at DESC
+                """

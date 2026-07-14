@@ -11,6 +11,14 @@ SALESMAN_MODEL = os.getenv("SALESMAN_MODEL", DEFAULT_MODEL)
 CONSULTANT_MODEL = os.getenv("CONSULTANT_MODEL", DEFAULT_MODEL)
 REVIEWER_MODEL = os.getenv("REVIEWER_MODEL", DEFAULT_MODEL)
 
+def get_llm():
+    return ChatOllama(
+        model = DEFAULT_MODEL,
+        base_url=OLLAMA_BASE_URL,
+        validate_model_on_init=True,
+        temperature=0.2,
+    )
+
 
 def get_router_llm():
     return ChatOllama(

@@ -13,7 +13,7 @@ from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
 from psycopg_pool import AsyncConnectionPool
 from psycopg.rows import dict_row
 
-from app.router import route_message
+from app.utils.router import route_message
 from app.agents.salesman_agent import create_salesman_agent
 from app.agents.consultant_agent import create_consultant_agent
 from app.agents.router_agent import router_message
@@ -153,19 +153,10 @@ def build_graph(checkpointer):
 
     return agent_builder.compile(checkpointer=checkpointer)
 
-async def create_chat_graph():
-    postgres_pool = AsyncConnectionPool(
-        conninfo=DB_URL,
-        max_size=20,
-        kwargs={
-            "autocommit" : True,
-            "row_factory": dict_row,
-        }
-    )
+async def create_chat_graph(postgres_pool: AsyncConnectionPool):
 
     checkpointer = AsyncPostgresSaver(postgres_pool)
     await checkpointer.setup()
 
     chat_graph = build_graph(checkpointer=checkpointer)
-
     return chat_graph, postgres_pool

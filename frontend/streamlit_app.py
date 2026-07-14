@@ -148,7 +148,7 @@ with st.sidebar:
 
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
-        st.write(message["content"])
+        st.write(message["content"].replace("$", r"\$"))
 
 user_message = st.chat_input("Ask about consortium options...")
 
