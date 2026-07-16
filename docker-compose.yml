@@ -59,6 +59,10 @@ services:
       RAG_SOURCE_DIR: app/data/rag_resources
       VECTOR_STORE_TYPE: pgvector
       EXA_API_KEY: ${EXA_API_KEY}
+      LANGSMITH_TRACING: ${LANGSMITH_TRACING}
+      LANGSMITH_API_KEY: ${LANGSMITH_API_KEY}
+      LANGSMITH_ENDPOINT: ${LANGSMITH_ENDPOINT}
+      LANGSMITH_PROJECT: ${LANGSMITH_PROJECT}
     ports:
       - "8000:8000"
     volumes:
@@ -112,8 +116,40 @@ services:
       RAG_SOURCE_DIR: app/data/rag_resources
       VECTOR_STORE_TYPE: pgvector
       EXA_API_KEY: ${EXA_API_KEY}
+      LANGSMITH_TRACING: ${LANGSMITH_TRACING}
+      LANGSMITH_API_KEY: ${LANGSMITH_API_KEY}
+      LANGSMITH_ENDPOINT: ${LANGSMITH_ENDPOINT}
+      LANGSMITH_PROJECT: ${LANGSMITH_PROJECT}
     ports:
       - "8010:8001"
+    networks:
+      - ollama_docker
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    depends_on:
+      - backend
+    networks:
+      - ollama_docker
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
+    depends_on:
+      - prometheus
     networks:
       - ollama_docker
 
@@ -121,6 +157,7 @@ volumes:
   postgres_data:
   ollama_data:
   chroma_data:
+  grafana_data:
 
 networks:
   ollama_docker:

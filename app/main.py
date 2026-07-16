@@ -10,6 +10,8 @@ from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
 from psycopg_pool import AsyncConnectionPool
 from psycopg.rows import dict_row
 
+from prometheus_fastapi_instrumentator import Instrumentator
+
 from app.graph import create_chat_graph
 from app.agents.router_agent import router_message
 from app.db.chat_history import save_message, create_conversation, load_messages, get_sidebar_conversations, clear_chat_history
@@ -37,6 +39,8 @@ async def lifespan(app: FastAPI):
         yield
 
 app = FastAPI(lifespan=lifespan)
+
+Instrumentator().instrument(app).expose(app)
 
 class ChatRequest(BaseModel):
     message: str
