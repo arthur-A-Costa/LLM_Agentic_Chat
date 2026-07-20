@@ -16,7 +16,6 @@ def search_consortium(consortium_type: str | None = None) -> list[dict]:
                     """
                     SELECT
                         consortium_id,
-                        consortium_code,
                         consortium_name,
                         consortium_type,
                         description,

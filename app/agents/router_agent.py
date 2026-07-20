@@ -16,6 +16,7 @@ class RouterDecision(BaseModel):
 llm = get_router_llm().with_structured_output(RouterDecision)
 
 def router_message (message: str) -> RouterDecision:
+    llm = get_router_llm().with_structured_output(RouterDecision)
 
     prompt = """
     You are a routing agent for a banking chatbot focused on consortium products.

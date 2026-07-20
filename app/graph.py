@@ -1,6 +1,7 @@
 from typing import Literal, TypedDict, Annotated
 import operator
 import uuid
+from pydantic import BaseModel
 
 from langchain_core.runnables import RunnableConfig
 from langchain_core.messages import AnyMessage, AIMessage
@@ -18,6 +19,7 @@ from app.agents.salesman_agent import create_salesman_agent
 from app.agents.consultant_agent import create_consultant_agent
 from app.agents.router_agent import router_message
 from app.agents.reviewer_agent import create_reviewer_agent
+from app.agents.editor_agent import create_editor_agent
 
 import os
 
@@ -31,6 +33,15 @@ class ChatGraphState(TypedDict):
     router_reason: str
     draft_response: str
     response: str
+    review_action: str
+    review_text: list[str]
+
+# Can be used in teh future for structured review responses
+class ReviewResult(BaseModel):
+    passed: bool
+    severity: Literal["none", "minor", "major"]
+    issues: list[str]
+    recommended_action: Literal["return", "edit", "redo"]
 
 # salesmas_agent = create_salesman_agent()
 # consultant_agent = create_consultant_agent()
@@ -77,8 +88,9 @@ async def salesman_node(state: ChatGraphState) -> ChatGraphState:
     final_message = result["messages"][-1].content
 
     return {
-         "messages": [final_message],
-         "draft_response": final_message
+         "messages": [AIMessage(content=final_message)],
+         "draft_response": final_message,
+         "response": final_message
     }
 
 async def consultant_node(state: ChatGraphState) -> ChatGraphState:
@@ -93,35 +105,112 @@ async def consultant_node(state: ChatGraphState) -> ChatGraphState:
     final_message = result["messages"][-1].content
 
     return {
-         "messages": [final_message],
-         "draft_response": final_message
+         "messages": [AIMessage(content=final_message)],
+         "draft_response": final_message,
+         "response": final_message
     }
 
 async def reviewer_node(state: ChatGraphState) -> ChatGraphState:
     draft_response = state["draft_response"]
+    latest_user_message = get_latest_user_message(state)
 
     reviewer_agent = await create_reviewer_agent()
+    # "Return structured output in the form of Json that utilizes the following values (following the respective data type):\n"
     result = await reviewer_agent.ainvoke(
         {
             "messages": [
                 {
                     "role": "user",
                     "content": (
-                        "Review and rewrite the following draft answer before it is shown "
-                        "to the customer. Preserve the meaning and factual details.\n\n"
-                        f"Draft answer:\n{draft_response}"
+                        "Review and analyze the following draft answer before it is shown "
+                        "to the customer and make sure it completely answers the users last message "
+                        "and contains no gramatical mistakes or other issues.\n\n"
+                        "Return one of the following actions:"
+                        "- return"
+                        "- edit"
+                        "Choose 'return' if the answer is acceptable and meets all requirements"
+                        "Choose 'edit' in cases such as:"
+                        "- The text is not in the same language as the question"
+                        "- The grammar or formatting is poor or incorrect"
+                        "- The answer needs to be refined or made clearer"
+                        "- The response cites internal functions, product codes, or other information that should be hidden from the public"
+                        f"Last user message:\n{latest_user_message}\n"
+                        f"Draft answer:\n{draft_response}\n"
+                        "Response Format:\n"
+                        "passed: <True or False>\n"
+                        "severity: <none , minor, medium, major> based on amount of errors and issues\n"
+                        "issues:  <short list of issues or none>\n"
+                        "recommended_action: <return or edit>"
                     ),
                 }
             ]
         }
     )
 
-    reviewed_message = result["messages"][-1]
-    reviewed_text = reviewed_message.content
+    reviewer_message = result["messages"][-1].content.strip()
+    lower = reviewer_message.lower()
+    if "recommended_action: edit" in lower:
+        review_action = "edit"
+    else:
+        review_action = "return"
 
     return {
-         "messages": [AIMessage(content=reviewed_text)],
-         "response": reviewed_text,
+        "review_action": review_action,
+        "review_text": [reviewer_message],
+    }
+
+def review_decision_node(state):
+    review = state["review_action"]
+
+    if review == "return":
+        return "final"
+
+    if review == "edit":
+        return "editor"
+
+    #if review.recommended_action == "redo" and state["redo_count"] < 1:
+    #    return "redo_specialist"
+
+    return "final"
+
+async def editor_node(state: ChatGraphState) -> ChatGraphState:
+    draft_response = state["draft_response"]
+    latest_user_message = get_latest_user_message(state)
+    review_issues = state["review_text"]
+
+    editor_agent = await create_editor_agent()
+    result = await editor_agent.ainvoke(
+        {
+            "messages": [
+                {
+                    "role": "user",
+                    "content": (
+                        "Edit and reformat the following draft answer before it is shown "
+                        "to the customer.\n"
+                        "Follow the issues found by the reviwer as a guideline of possible issues to fix\n\n"
+                        "User question:\n"
+                        f"{latest_user_message}\n\n"
+                        "Reviewer issues:\n"
+                        f"{review_issues}\n\n"
+                        "Draft answer:\n"
+                        f"{draft_response}"
+                    ),
+                }
+            ]
+        }
+    )
+
+    edited_message = result["messages"][-1]
+    edited_text = edited_message.content
+
+    return {
+         "messages": [AIMessage(content=edited_text)],
+         "response": edited_text,
+    }
+
+def final_response_node(state: ChatGraphState) -> dict:
+    return {
+        "response": state["draft_response"]
     }
 
 # Function that builds the graph - framework that defines the order in which agents/nodes are executed 
@@ -132,6 +221,8 @@ def build_graph(checkpointer):
     agent_builder.add_node("salesman", salesman_node)
     agent_builder.add_node("consultant", consultant_node)
     agent_builder.add_node("reviewer", reviewer_node)
+    agent_builder.add_node("editor", editor_node)
+    agent_builder.add_node("final_response", final_response_node)
 
     agent_builder.add_edge(START, "router")
     agent_builder.add_conditional_edges(
@@ -145,7 +236,16 @@ def build_graph(checkpointer):
     if ENABLE_REVIEW_AGENT:
         agent_builder.add_edge("salesman", "reviewer")
         agent_builder.add_edge("consultant", "reviewer")
-        agent_builder.add_edge("reviewer", END)
+        agent_builder.add_conditional_edges(
+            "reviewer", 
+            review_decision_node,
+            {
+                "final": "final_response",
+                "editor": "editor",
+            }
+        )
+        agent_builder.add_edge("final_response", END)
+        agent_builder.add_edge("editor", END)
 
     else:
         agent_builder.add_edge("salesman", END)

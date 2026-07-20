@@ -47,7 +47,8 @@ services:
       OLLAMA_BASE_URL: http://ollama:11434
       DATABASE_URL: postgresql://postgres_user:postgres_password@postgres:5432/postgres
       ENABLE_REVIEW_AGENT: true
-      OLLAMA_MODEL: qwen3:8b
+      DEFAULT_MODEL: qwen3:8b
+      ALTERNATIVE_MODEL: qwen2.5:1.5b
       ROUTER_MODEL: qwen3:8b
       SALESMAN_MODEL: qwen3:8b
       CONSULTANT_MODEL: qwen3:8b
@@ -163,6 +164,18 @@ services:
       - /var/run:/var/run:rw
       - /sys:/sys:ro
       - /var/lib/docker/:/var/lib/docker:ro
+    networks:
+      - ollama_docker
+
+  postgres_exporter:
+    image: prometheuscommunity/postgres-exporter:latest
+    container_name: postgres_exporter
+    environment:
+      DATA_SOURCE_NAME: "postgresql://postgres_user:postgres_password@postgres:5432/postgres?sslmode=disable"
+    ports:
+      - "9187:9187"
+    depends_on:
+      - postgres
     networks:
       - ollama_docker
 

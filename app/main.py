@@ -1,8 +1,10 @@
 from fastapi import FastAPI, Request
 from contextlib import asynccontextmanager
+from typing import Literal
 from pydantic import BaseModel
 import uuid
 import os
+import time
 
 from langchain_core.runnables import RunnableConfig
 from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
@@ -16,6 +18,7 @@ from app.graph import create_chat_graph
 from app.agents.router_agent import router_message
 from app.db.chat_history import save_message, create_conversation, load_messages, get_sidebar_conversations, clear_chat_history
 from app.utils.title_generator import get_chat_title, update_title
+from app.custom_metrics import CHAT_REQUESTS, CHAT_ERRORS, CHAT_LATENCY
 
 DB_URL = os.getenv("DATABASE_URL", "postgresql://postgres_user:postgres_password@postgres:5432/postgres")
 
@@ -82,21 +85,33 @@ async def chat(chat_request: ChatRequest, http_request: Request):
     )
 
     config: RunnableConfig = {"configurable": {"thread_id": conversation_id}}
-    result = await http_request.app.state.chat_graph.ainvoke(
-    {
-        "messages": [
-            {
-                "role" : "user",
-                "content" : chat_request.message
-             }
-            ],
-        "selected_agent": "",
-        "router_reason": "",
-        "draft_response": "",
-        "response": "",
-    },
-    config=config
-)
+    start_time = time.perf_counter()
+    try:
+        result = await http_request.app.state.chat_graph.ainvoke(
+        {
+            "messages": [
+                {
+                    "role" : "user",
+                    "content" : chat_request.message
+                }
+                ],
+            "selected_agent": "",
+            "router_reason": "",
+            "draft_response": "",
+            "response": "",
+        },
+        config=config
+        )
+        selected_agent = result["selected_agent"]
+
+        CHAT_REQUESTS.labels(agent = selected_agent).inc
+        CHAT_LATENCY.labels(agent = selected_agent).observe(
+            time.perf_counter() - start_time
+        )
+
+    except Exception as error:
+        CHAT_ERRORS.labels(error_type=type(error).__name__).inc
+        raise
 
     save_message(
         conversation_id=conversation_id,
